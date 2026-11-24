@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ตัวนับวันที่ บวก-ลบ จำนวนวัน</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f3f6f7; --surface:#ffffff; --ink:#14282e; --muted:#566b72; --line:#d5dfe2;
+  --accent:#0e6b66; --accent-ink:#ffffff; --warn:#9a4a00; --warn-bg:#fff3e3;
+  color-scheme: light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1b1e; --surface:#172529; --ink:#e6f0f1; --muted:#9fb4b9; --line:#2b3e43;
+    --accent:#5cc9c0; --accent-ink:#06211f; --warn:#ffc27a; --warn-bg:#2d2214;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1b1e; --surface:#172529; --ink:#e6f0f1; --muted:#9fb4b9; --line:#2b3e43;
+  --accent:#5cc9c0; --accent-ink:#06211f; --warn:#ffc27a; --warn-bg:#2d2214;
+  color-scheme: dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Sarabun","Noto Sans Thai",Tahoma,sans-serif;font-size:17px;line-height:1.6}
+main{max-width:720px;margin:0 auto;padding:28px 16px 48px}
+h1{font-size:1.6rem;line-height:1.3;margin:0 0 6px;font-weight:700}
+.sub{color:var(--muted);margin:0 0 24px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:20px}
+.panel h2{font-size:1.1rem;margin:0 0 12px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+label.f{display:flex;flex-direction:column;font-size:.9rem;color:var(--muted);gap:4px;flex:1 1 90px}
+label.f.month{flex:2 1 160px}
+select,input[type=number]{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:10px 8px;min-height:44px;width:100%}
+input[type=number]{font-size:1.3rem;font-weight:700}
+select:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.sect{margin-top:18px}
+.sect>span{display:block;font-size:.9rem;color:var(--muted);margin-bottom:4px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+button{font:inherit;min-height:44px;padding:0 16px;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.chk{display:flex;align-items:center;gap:10px;margin-top:14px;min-height:44px;cursor:pointer}
+.chk input{width:22px;height:22px;accent-color:var(--accent)}
+.msg{margin-top:12px;color:var(--warn);background:var(--warn-bg);padding:8px 12px;border-radius:6px}
+.hero{border-left:6px solid var(--accent)}
+.hero .big{font-size:1.7rem;font-weight:700;margin:2px 0;line-height:1.35}
+.hero .small{color:var(--muted);margin:0}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+  <h1>ตัวนับวันที่ บวก-ลบ จำนวนวัน</h1>
+  <p class="sub">เลือกวันที่เริ่มต้น แล้วกรอกจำนวนวัน จะรู้ทันทีว่าตรงกับวันที่เท่าไหร่</p>
+
+  <section class="panel" aria-labelledby="inp">
+    <h2 id="inp">วันที่เริ่มต้น</h2>
+    <div class="row">
+      <label class="f">วัน<select id="d"></select></label>
+      <label class="f month">เดือน<select id="m"></select></label>
+      <label class="f">ปี พ.ศ.<select id="y"></select></label>
+    </div>
+    <div class="chips"><button type="button" id="today">ใช้วันนี้</button></div>
+
+    <div class="sect">
+      <span>ทิศทาง</span>
+      <div class="seg" role="group" aria-label="ทิศทาง">
+        <button type="button" id="fwd" class="on" aria-pressed="true">นับไปข้างหน้า (+)</button>
+        <button type="button" id="back" aria-pressed="false">นับย้อนหลัง (-)</button>
+      </div>
+    </div>
+
+    <label class="f sect">จำนวนวัน (แก้ไขได้)
+      <input type="number" id="n" value="180" min="0" max="36500" step="1" inputmode="numeric">
+    </label>
+    <div class="chips" id="quick" aria-label="จำนวนวันที่ใช้บ่อย"></div>
+
+    <label class="chk"><input type="checkbox" id="incl"> นับวันเริ่มต้นเป็นวันที่ 1</label>
+    <div class="msg" id="err" role="alert" hidden></div>
+  </section>
+
+  <section class="panel hero" id="out" aria-live="polite" hidden>
+    <p class="small" id="lead"></p>
+    <p class="big" id="res"></p>
+    <p class="small" id="note"></p>
+  </section>
+</main>
+
+<script>
+var MONTHS=["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
+var DAYS=["อาทิตย์","จันทร์","อังคาร","พุธ","พฤหัสบดี","ศุกร์","เสาร์"];
+var $=function(id){return document.getElementById(id)};
+var MS=86400000,dir=1;
+
+function opt(sel,val,txt){var o=document.createElement("option");o.value=val;o.textContent=txt;sel.appendChild(o)}
+var cy=new Date().getFullYear()+543;
+for(var i=1;i<=31;i++)opt($("d"),i,i);
+MONTHS.forEach(function(n,i){opt($("m"),i,n)});
+for(var k=cy+20;k>=cy-20;k--)opt($("y"),k,k);
+
+function dim(y,m){return new Date(Date.UTC(y,m+1,0)).getUTCDate()}
+function fmtDate(dt){return dt.getUTCDate()+" "+MONTHS[dt.getUTCMonth()]+" "+(dt.getUTCFullYear()+543)}
+
+function setToday(){
+  var t=new Date();
+  $("d").value=t.getDate();$("m").value=t.getMonth();$("y").value=t.getFullYear()+543;
+  calc();
+}
+
+function calc(){
+  var err=$("err");err.hidden=true;
+  var d=+$("d").value,m=+$("m").value,y=+$("y").value-543,raw=$("n").value.trim();
+  if(raw===""||!/^\d+$/.test(raw)){err.textContent="กรอกจำนวนวันเป็นตัวเลขจำนวนเต็ม (0 ขึ้นไป)";err.hidden=false;$("out").hidden=true;return}
+  var n=parseInt(raw,10);
+  if(n>36500){err.textContent="จำนวนวันมากเกินไป (สูงสุด 36,500 วัน)";err.hidden=false;$("out").hidden=true;return}
+  if(d>dim(y,m)){err.textContent="เดือน"+MONTHS[m]+" "+(y+543)+" ไม่มีวันที่ "+d+" กรุณาตรวจสอบอีกครั้ง";err.hidden=false;$("out").hidden=true;return}
+
+  var incl=$("incl").checked,step=n-(incl&&n>0?1:0);
+  var start=new Date(Date.UTC(y,m,d)),end=new Date(start.getTime()+dir*step*MS);
+  $("lead").textContent="จาก "+fmtDate(start)+(dir>0?" นับไปข้างหน้า ":" นับย้อนหลัง ")+n.toLocaleString("th-TH")+" วัน จะตรงกับ";
+  $("res").textContent="วัน"+DAYS[end.getUTCDay()]+"ที่ "+fmtDate(end);
+  var w=Math.floor(n/7),r=n%7,txt="เท่ากับ "+(w?w+" สัปดาห์ ":"")+(r||!w?r+" วัน":"");
+  $("note").textContent=txt.trim()+(incl?" (นับวันเริ่มต้นเป็นวันที่ 1)":"");
+  $("out").hidden=false;
+}
+
+function setDir(v){
+  dir=v;
+  $("fwd").classList.toggle("on",v>0);$("back").classList.toggle("on",v<0);
+  $("fwd").setAttribute("aria-pressed",v>0);$("back").setAttribute("aria-pressed",v<0);
+  calc();
+}
+
+[30,60,90,120,180,365].forEach(function(v){
+  var b=document.createElement("button");b.type="button";b.textContent=v+" วัน";
+  b.addEventListener("click",function(){$("n").value=v;calc()});
+  $("quick").appendChild(b);
+});
+
+["d","m","y"].forEach(function(i){$(i).addEventListener("change",calc)});
+$("n").addEventListener("input",calc);
+$("incl").addEventListener("change",calc);
+$("today").addEventListener("click",setToday);
+$("fwd").addEventListener("click",function(){setDir(1)});
+$("back").addEventListener("click",function(){setDir(-1)});
+setToday();
+</script>
+</body>
+</html>
