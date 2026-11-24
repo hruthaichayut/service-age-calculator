@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ตัวนับอายุราชการ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f3f6f7; --surface:#ffffff; --ink:#14282e; --muted:#566b72; --line:#d5dfe2;
+  --accent:#0e6b66; --accent-ink:#ffffff; --done:#566b72; --now:#0e6b66; --warn:#9a4a00; --warn-bg:#fff3e3;
+  color-scheme: light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1b1e; --surface:#172529; --ink:#e6f0f1; --muted:#9fb4b9; --line:#2b3e43;
+    --accent:#5cc9c0; --accent-ink:#06211f; --done:#9fb4b9; --now:#5cc9c0; --warn:#ffc27a; --warn-bg:#2d2214;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1b1e; --surface:#172529; --ink:#e6f0f1; --muted:#9fb4b9; --line:#2b3e43;
+  --accent:#5cc9c0; --accent-ink:#06211f; --done:#9fb4b9; --now:#5cc9c0; --warn:#ffc27a; --warn-bg:#2d2214;
+  color-scheme: dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Sarabun","Noto Sans Thai",Tahoma,sans-serif;font-size:17px;line-height:1.6}
+main{max-width:720px;margin:0 auto;padding:28px 16px 48px}
+h1{font-size:1.6rem;line-height:1.3;margin:0 0 6px;font-weight:700}
+.sub{color:var(--muted);margin:0 0 24px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:20px}
+.panel h2{font-size:1.1rem;margin:0 0 12px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+label.f{display:flex;flex-direction:column;font-size:.9rem;color:var(--muted);gap:4px;flex:1 1 90px}
+label.f.month{flex:2 1 160px}
+select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:10px 8px;min-height:44px}
+select:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.chk{display:flex;align-items:center;gap:10px;margin:16px 0 10px;min-height:44px;cursor:pointer}
+.chk input{width:22px;height:22px;accent-color:var(--accent)}
+.actions{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
+button{font:inherit;min-height:44px;padding:0 18px;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+.msg{margin-top:12px;color:var(--warn);background:var(--warn-bg);padding:8px 12px;border-radius:6px}
+.hero{border-left:6px solid var(--accent)}
+.hero .big{font-size:1.7rem;font-weight:700;margin:2px 0;line-height:1.35}
+.hero .small{color:var(--muted);margin:0}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:420px}
+th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.9rem;color:var(--muted);font-weight:500}
+tr:last-child td{border-bottom:0}
+.tag{display:inline-block;padding:1px 10px;border-radius:99px;border:1px solid currentColor;font-size:.85rem;white-space:nowrap}
+.tag.done{color:var(--done)} .tag.next{color:var(--muted);border-style:dashed}
+ul.notes{margin:0;padding-left:1.2em;color:var(--muted);font-size:.95rem}
+ul.notes li{margin:4px 0}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+  <h1>ตัวนับอายุราชการ</h1>
+  <p class="sub">กรอกวันบรรจุ แล้วดูอายุราชการเป็นปี เดือน วัน และจำนวนวันรวม โดยนับวันบรรจุเป็นวันที่ 1</p>
+
+  <section class="panel" aria-labelledby="inp">
+    <h2 id="inp">วันที่บรรจุ</h2>
+    <div class="row">
+      <label class="f">วัน<select id="sd"></select></label>
+      <label class="f month">เดือน<select id="sm"></select></label>
+      <label class="f">ปี พ.ศ.<select id="sy"></select></label>
+    </div>
+
+    <label class="chk"><input type="checkbox" id="other"> นับถึงวันที่อื่นแทนวันนี้</label>
+    <div class="row" id="asof" hidden>
+      <label class="f">วัน<select id="ad"></select></label>
+      <label class="f month">เดือน<select id="am"></select></label>
+      <label class="f">ปี พ.ศ.<select id="ay"></select></label>
+    </div>
+
+    <div class="actions">
+      <button class="primary" id="go" type="button">คำนวณ</button>
+      <button id="clr" type="button">ล้างข้อมูล</button>
+    </div>
+    <div class="msg" id="err" role="alert" hidden></div>
+  </section>
+
+  <div id="out" hidden>
+    <section class="panel hero" aria-live="polite">
+      <p class="small" id="lead"></p>
+      <p class="big" id="age"></p>
+      <p class="small" id="days"></p>
+    </section>
+
+    <section class="panel">
+      <h2>วันที่ครบอายุราชการ</h2>
+      <div class="scroll"><table id="ms"></table></div>
+    </section>
+
+    <section class="panel">
+      <h2>ข้อควรจำ</h2>
+      <ul class="notes">
+        <li>นับตามปฏิทินแบบรวมวันบรรจุ เช่น บรรจุ 23 พ.ค. 2569 ถึงวันที่ 23 พ.ค. 2569 เท่ากับ 1 วัน</li>
+        <li>ยังไม่รวมกรณีเวลาราชการทวีคูณ หรือช่วงที่ไม่นับเป็นเวลาราชการ</li>
+        <li>การคิดสิทธิบำเหน็จบำนาญมีหลักเกณฑ์เฉพาะ เช่น การปัดเศษ ควรตรวจกับฝ่ายบุคคลหรือ กบข. อีกครั้ง</li>
+      </ul>
+    </section>
+  </div>
+</main>
+
+<script>
+var MONTHS=["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
+var $=function(id){return document.getElementById(id)};
+var MS=86400000;
+
+function opt(sel,val,txt){var o=document.createElement("option");o.value=val;o.textContent=txt;sel.appendChild(o)}
+function build(d,m,y,from,to){
+  opt(d,"","วัน");for(var i=1;i<=31;i++)opt(d,i,i);
+  opt(m,"","เดือน");MONTHS.forEach(function(n,i){opt(m,i,n)});
+  opt(y,"","ปี");for(var k=to;k>=from;k--)opt(y,k,k);
+}
+var cy=new Date().getFullYear()+543;
+build($("sd"),$("sm"),$("sy"),cy-45,cy+1);
+build($("ad"),$("am"),$("ay"),cy-45,cy+40);
+
+function dim(y,m){return new Date(Date.UTC(y,m+1,0)).getUTCDate()}
+function utc(p){return Date.UTC(p.y,p.m,p.d)}
+function key(p){return p.y*10000+p.m*100+p.d}
+function addMonths(s,n){
+  var t=s.m+n,yy=s.y+Math.floor(t/12),mm=((t%12)+12)%12;
+  return {y:yy,m:mm,d:Math.min(s.d,dim(yy,mm))};
+}
+function shift(p,days){var dt=new Date(utc(p)+days*MS);return {y:dt.getUTCFullYear(),m:dt.getUTCMonth(),d:dt.getUTCDate()}}
+function fmt(p){return p.d+" "+MONTHS[p.m]+" "+(p.y+543)}
+
+function read(d,m,y){
+  var dv=+$(d).value,mv=$(m).value,yv=+$(y).value;
+  if(!dv||mv===""||!yv)return {err:"missing"};
+  mv=+mv;
+  if(dv>dim(yv-543,mv))return {err:"invalid",txt:"เดือน"+MONTHS[mv]+" "+yv+" ไม่มีวันที่ "+dv};
+  return {p:{y:yv-543,m:mv,d:dv},raw:[dv,mv,yv]};
+}
+function show(msg){var e=$("err");e.textContent=msg;e.hidden=false;$("out").hidden=true}
+
+function calc(){
+  $("err").hidden=true;
+  var s=read("sd","sm","sy");
+  if(s.err==="missing")return show("เลือกวัน เดือน และปี พ.ศ. ที่บรรจุให้ครบ");
+  if(s.err)return show(s.txt+" กรุณาตรวจสอบอีกครั้ง");
+  var now=new Date(),asOf={y:now.getFullYear(),m:now.getMonth(),d:now.getDate()},custom=$("other").checked;
+  if(custom){
+    var a=read("ad","am","ay");
+    if(a.err==="missing")return show("เลือกวันที่ที่ต้องการนับถึงให้ครบ หรือยกเลิกช่องนับถึงวันที่อื่น");
+    if(a.err)return show(a.txt+" กรุณาตรวจสอบอีกครั้ง");
+    asOf=a.p;
+  }
+  var start=s.p;
+  if(key(asOf)<key(start))return show("วันที่ที่นับถึงต้องไม่ก่อนวันบรรจุ");
+  try{localStorage.setItem("service-start",JSON.stringify(s.raw))}catch(e){}
+
+  var end=shift(asOf,1); // exclusive end, so the appointment day counts as day 1
+  var n=(end.y-start.y)*12+(end.m-start.m);
+  if(key(addMonths(start,n))>key(end))n--;
+  var rest=Math.round((utc(end)-utc(addMonths(start,n)))/MS);
+  var yy=Math.floor(n/12),mm=n%12;
+  var total=Math.round((utc(asOf)-utc(start))/MS)+1;
+
+  var parts=[];
+  if(yy)parts.push(yy+" ปี");
+  if(mm)parts.push(mm+" เดือน");
+  if(rest||!parts.length)parts.push(rest+" วัน");
+  $("lead").textContent="อายุราชการ นับตั้งแต่ "+fmt(start)+" ถึง "+(custom?fmt(asOf):"วันนี้ ("+fmt(asOf)+")");
+  $("age").textContent=parts.join(" ");
+  $("days").textContent="รวม "+total.toLocaleString("th-TH")+" วัน";
+
+  var rows=[1,5,10,15,20,25,30].map(function(N){
+    var at=shift(addMonths(start,12*N),-1);
+    var st=key(asOf)>=key(at)?'<span class="tag done">ครบแล้ว</span>':'<span class="tag next">ยังไม่ถึง</span>';
+    return "<tr><td>ครบ "+N+" ปี</td><td>"+fmt(at)+"</td><td>"+st+"</td></tr>";
+  }).join("");
+  $("ms").innerHTML="<tr><th>อายุราชการ</th><th>ครบเมื่อวันที่</th><th>สถานะ</th></tr>"+rows;
+  $("out").hidden=false;
+}
+
+$("other").addEventListener("change",function(){$("asof").hidden=!this.checked});
+$("go").addEventListener("click",calc);
+$("clr").addEventListener("click",function(){
+  ["sd","sm","sy","ad","am","ay"].forEach(function(i){$(i).value=""});
+  $("other").checked=false;$("asof").hidden=true;$("out").hidden=true;$("err").hidden=true;
+  try{localStorage.removeItem("service-start")}catch(e){}
+});
+try{
+  var sv=JSON.parse(localStorage.getItem("service-start")||"null");
+  if(sv){$("sd").value=sv[0];$("sm").value=sv[1];$("sy").value=sv[2];calc()}
+}catch(e){}
+</script>
+</body>
+</html>
